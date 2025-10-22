@@ -1,12 +1,17 @@
-# api.py
+# src/ai_app/api.py
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
+import os
+from ai_app.rag_pipeline import generate_qa_with_parser, to_numbered_key_list
+from ai_app.build_index import context_from_pdf_bytes
 
-from rag_pipeline import generate_qa_with_parser, to_numbered_key_list
-from build_index import context_from_pdf_bytes
+# ===== .env 경로 로드 =====
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path=dotenv_path)
 
-load_dotenv()
+# ===== FastAPI 앱 생성 =====
 app = FastAPI(title="Study Helper AI", version="1.0.0")
 
 @app.post("/ai/generate-qa")
