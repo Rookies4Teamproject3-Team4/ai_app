@@ -15,7 +15,8 @@ dependencies = [
     "pypdf (>=6.1.2,<7.0.0)",
     "langchain-community (>=0.4,<0.5)",
     "langchain-google-genai (>=3.0.0,<4.0.0)",
-    "faiss-cpu (>=1.12.0,<2.0.0)"
+    "faiss-cpu (>=1.12.0,<2.0.0)",
+    "uvicorn (>=0.38.0,<0.39.0)"
 ]
 
 [tool.poetry]
@@ -24,3 +25,8 @@ packages = [{include = "ai_app", from = "src"}]
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ipykernel (>=7.0.1,<8.0.0)"
+]
