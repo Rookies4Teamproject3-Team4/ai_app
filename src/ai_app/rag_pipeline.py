@@ -77,7 +77,7 @@ def _get_model() -> ChatOpenAI:
     return ChatOpenAI(base_url=base_url, api_key=api_key, model=model_id, temperature=0.2)
 
 _model = None
-_chain_raw = None  # prompt -> llm -> raw string
+_chain_raw = None 
 
 def get_model():
     global _model
@@ -110,12 +110,12 @@ def _safe_parse_to_model(text: str) -> GenerateQAResponse:
     try:
         return parser.parse(raw)
     except Exception:
-        # 1차 보정: 잘못된 역슬래시 이스케이프 수정
+        
         fixed = _escape_invalid_backslashes(raw)
         try:
             return parser.parse(fixed)
         except Exception:
-            # 2차 보정: JSON 로드 시도 후 Pydantic 모델화
+            
             data = json.loads(fixed)
             return GenerateQAResponse.model_validate(data)
 
@@ -145,7 +145,7 @@ def generate_qa_with_parser(
     isOx: bool,
     context: str
 ) -> GenerateQAResponse:
-    # MOCK 모드면 LLM 호출 없이 더미 반환
+    
     if os.getenv("MOCK_AI", "").lower() in ("1", "true", "yes", "on"):
         return _mock_items(num_questions, choice_count)
 
@@ -176,7 +176,7 @@ def to_numbered_key_list(resp: GenerateQAResponse) -> list[dict]:
         out.append({
             f"question{idx}": display_q,
             "문제유형": item.qtype,
-            f"답{idx}": item.answer,  # 백엔드가 'answerN'이면 여기만 f'answer{idx}'로 교체
+            f"답{idx}": item.answer,  
         })
     return out
 

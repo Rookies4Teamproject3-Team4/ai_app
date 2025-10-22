@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from pprint import pprint
 
-# 테스트는 src/ai_app 내부 모듈을 직접 임포트
+
 from ai_app.build_index import context_from_pdf_bytes
 from ai_app.rag_pipeline import generate_qa_with_parser, to_numbered_key_list
 
@@ -21,7 +21,7 @@ def run_local_pipeline_test(
     isDesc: bool = True,
     isOx: bool = False,
 ):
-    # 0) MOCK 모드 강제(키 없어도 엔드투엔드 확인)
+    
     os.environ["MOCK_AI"] = "false"
 
     banner("1) PDF 로드")

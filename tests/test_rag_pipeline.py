@@ -34,7 +34,7 @@ def test_generate_qa_with_parser_mock_mode():
 
 # ---------- 엔드포인트 테스트 (/ai/generate-qa) ----------
 def test_generate_qa_endpoint_returns_numbered_list(client):
-    # 가짜 PDF 바이트 (실제 파싱은 목킹되어 사용되지 않음)
+    
     fake_pdf = io.BytesIO(b"%PDF-1.4\n%fake\n%%EOF")
     files = {
         "pdf": ("dummy.pdf", fake_pdf, "application/pdf")

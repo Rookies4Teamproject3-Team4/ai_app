@@ -9,7 +9,7 @@ from langchain_community.vectorstores import FAISS
 
 # ===== 설정 =====
 EMBED_MODEL = "BAAI/bge-m3"
-FAISS_DIR = ".faiss"       # 로컬 저장 폴더
+FAISS_DIR = ".faiss"       
 CHUNK_SIZE = 900
 CHUNK_OVERLAP = 120
 RETRIEVE_K = 6
@@ -64,7 +64,7 @@ def _subject_path(subject: str) -> str:
     os.makedirs(FAISS_DIR, exist_ok=True)
     safe = _sanitize_dir(subject)
     path = os.path.join(FAISS_DIR, safe)
-    os.makedirs(path, exist_ok=True)  # 디렉토리 보장
+    os.makedirs(path, exist_ok=True)  
     return path
 
 def load_faiss(subject: str, embeddings: HuggingFaceEmbeddings) -> Optional[FAISS]:
@@ -73,14 +73,14 @@ def load_faiss(subject: str, embeddings: HuggingFaceEmbeddings) -> Optional[FAIS
         try:
             return FAISS.load_local(path, embeddings, allow_dangerous_deserialization=True)
         except Exception:
-            # 손상/버전 불일치 시 새로 생성
+            
             return None
     return None
 
 def save_faiss(subject: str, vectordb: FAISS):
     path = _subject_path(subject)
-    os.makedirs(path, exist_ok=True)  # 안전망
-    vectordb.save_local(path)         # index.faiss / index.pkl 저장
+    os.makedirs(path, exist_ok=True)  
+    vectordb.save_local(path)         
 
 
 def upsert_to_faiss(subject: str, title: str, chunks: List[str]) -> FAISS:
@@ -105,7 +105,7 @@ def upsert_to_faiss(subject: str, title: str, chunks: List[str]) -> FAISS:
     return vectordb
 
 def build_context(vectordb: FAISS, query: str, k=RETRIEVE_K) -> str:
-    # FAISS는 기본이 유사도 검색(similarity_search)
+    
     docs = vectordb.similarity_search(query, k=k)
     return "\n\n".join(f"[{i+1}] {d.page_content}" for i, d in enumerate(docs))
 
