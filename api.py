@@ -47,3 +47,6 @@ async def generate_qa(
     # 3) 어댑터로 번호 키 변환 (백엔드 저장 형식 요구)
     numbered = to_numbered_key_list(resp)
     return JSONResponse(content=numbered, media_type="application/json")
+
+
+
