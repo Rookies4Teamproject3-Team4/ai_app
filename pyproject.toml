@@ -20,6 +20,8 @@ dependencies = [
 ]
 
 [tool.poetry]
+name = "ai-app" 
+version = "0.1.0"
 packages = [{include = "ai_app", from = "src"}]
 
 [build-system]

@@ -1,15 +1,15 @@
 # build_index.py
-import io, re, os
+import hashlib, io, re, os
 from typing import List, Optional
 from pypdf import PdfReader
 
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
 # ===== 설정 =====
 EMBED_MODEL = "BAAI/bge-m3"
-FAISS_DIR = ".faiss"       # 로컬 저장 폴더
+FAISS_DIR = ".faiss"       
 CHUNK_SIZE = 900
 CHUNK_OVERLAP = 120
 RETRIEVE_K = 6
@@ -52,9 +52,20 @@ def chunk_text(pages: List[str], chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP) -
     return chunks
 
 # ===== FAISS 유틸 =====
+def _sanitize_dir(name: str) -> str:
+    """파일 시스템 안전한 폴더명으로 변환(ASCII). 원본 해시 8자리로 충돌 방지."""
+    base = re.sub(r'[^A-Za-z0-9_.-]+', '-', name).strip('-.')
+    if not base:
+        base = "subject"
+    suffix = hashlib.sha1(name.encode("utf-8")).hexdigest()[:8]
+    return f"{base}-{suffix}"
+
 def _subject_path(subject: str) -> str:
     os.makedirs(FAISS_DIR, exist_ok=True)
-    return os.path.join(FAISS_DIR, subject)
+    safe = _sanitize_dir(subject)
+    path = os.path.join(FAISS_DIR, safe)
+    os.makedirs(path, exist_ok=True)  
+    return path
 
 def load_faiss(subject: str, embeddings: HuggingFaceEmbeddings) -> Optional[FAISS]:
     path = _subject_path(subject)
@@ -62,13 +73,15 @@ def load_faiss(subject: str, embeddings: HuggingFaceEmbeddings) -> Optional[FAIS
         try:
             return FAISS.load_local(path, embeddings, allow_dangerous_deserialization=True)
         except Exception:
-            # 손상되었거나 버전 불일치 시 새로 만들자
+            
             return None
     return None
 
 def save_faiss(subject: str, vectordb: FAISS):
     path = _subject_path(subject)
-    vectordb.save_local(path)
+    os.makedirs(path, exist_ok=True)  
+    vectordb.save_local(path)         
+
 
 def upsert_to_faiss(subject: str, title: str, chunks: List[str]) -> FAISS:
     """
@@ -92,7 +105,7 @@ def upsert_to_faiss(subject: str, title: str, chunks: List[str]) -> FAISS:
     return vectordb
 
 def build_context(vectordb: FAISS, query: str, k=RETRIEVE_K) -> str:
-    # FAISS는 기본이 유사도 검색(similarity_search)
+    
     docs = vectordb.similarity_search(query, k=k)
     return "\n\n".join(f"[{i+1}] {d.page_content}" for i, d in enumerate(docs))
 
@@ -105,3 +118,4 @@ def context_from_pdf_bytes(pdf_bytes: bytes, subject: str, title: str) -> str:
         raise ValueError("텍스트 청크가 비었습니다.")
     vectordb = upsert_to_faiss(subject=subject, title=title, chunks=chunks)
     return build_context(vectordb, query=title or subject, k=RETRIEVE_K)
+
