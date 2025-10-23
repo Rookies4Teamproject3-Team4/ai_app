@@ -3,9 +3,15 @@ import hashlib, io, re, os
 from typing import List, Optional
 from pypdf import PdfReader
 
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from dotenv import load_dotenv
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
+from langchain_upstage import UpstageEmbeddings
+
+load_dotenv() 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+embedding_model = UpstageEmbeddings(model="solar-embedding-1-large")
 
 # ===== 설정 =====
 EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # 80MB로 대폭 축소
@@ -18,7 +24,7 @@ _embeddings = None
 def get_embeddings():
     global _embeddings
     if _embeddings is None:
-        _embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
+        _embeddings = embedding_model
     return _embeddings
 
 # ===== PDF → 텍스트 → 청크 =====
