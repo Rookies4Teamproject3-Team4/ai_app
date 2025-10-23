@@ -2,6 +2,7 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
+load_dotenv()
 import os
 from .rag_pipeline import generate_qa_with_parser, to_numbered_key_list # 상대 경로 임포트
 from .build_index import context_from_pdf_bytes

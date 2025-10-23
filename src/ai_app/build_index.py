@@ -3,12 +3,13 @@ import hashlib, io, re, os
 from typing import List, Optional
 from pypdf import PdfReader
 
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 from langchain_community.vectorstores import FAISS
 
 # ===== 설정 =====
-EMBED_MODEL = "BAAI/bge-m3"
+EMBED_MODEL = "text-embedding-3-small"
 FAISS_DIR = ".faiss"       
 CHUNK_SIZE = 900
 CHUNK_OVERLAP = 120
@@ -18,7 +19,7 @@ _embeddings = None
 def get_embeddings():
     global _embeddings
     if _embeddings is None:
-        _embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
+        _embeddings = OpenAIEmbeddings(model=EMBED_MODEL)
     return _embeddings
 
 # ===== PDF → 텍스트 → 청크 =====
@@ -67,7 +68,7 @@ def _subject_path(subject: str) -> str:
     os.makedirs(path, exist_ok=True)  
     return path
 
-def load_faiss(subject: str, embeddings: HuggingFaceEmbeddings) -> Optional[FAISS]:
+def load_faiss(subject: str, embeddings: Embeddings) -> Optional[FAISS]:
     path = _subject_path(subject)
     if os.path.isdir(path):
         try:
