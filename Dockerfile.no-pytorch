@@ -1,0 +1,42 @@
+# ---- PyTorch 없이 테스트 (sentence-transformers만 사용) ----
+FROM python:3.12-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# 최소한의 시스템 의존성만 설치
+RUN apt-get update && apt-get install -y \
+    libffi-dev \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# PyTorch 없이 핵심 의존성만 설치
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    "python-dotenv>=1.1.1,<2.0.0" \
+    "langchain>=1.0.1,<2.0.0" \
+    "langchain-openai>=1.0.0,<2.0.0" \
+    "fastapi>=0.119.1,<0.120.0" \
+    "pypdf>=6.1.2,<7.0.0" \
+    "langchain-community>=0.4,<0.5" \
+    "langchain-google-genai>=3.0.0,<4.0.0" \
+    "faiss-cpu>=1.12.0,<2.0.0" \
+    "uvicorn>=0.38.0,<0.39.0" \
+    "python-multipart>=0.0.20,<0.0.21" \
+    "sentence-transformers>=5.1.1,<6.0.0"
+
+# 소스 코드 복사
+COPY src/ ./src/
+
+# 사용자 설정
+RUN groupadd -r appuser && useradd -r -g appuser appuser && \
+    mkdir -p /app/uploads && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+EXPOSE 7860
+
+CMD ["python", "src/main.py"]

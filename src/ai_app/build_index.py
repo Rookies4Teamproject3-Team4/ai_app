@@ -8,7 +8,7 @@ from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
 # ===== 설정 =====
-EMBED_MODEL = "BAAI/bge-m3"
+EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # 80MB로 대폭 축소
 FAISS_DIR = ".faiss"       
 CHUNK_SIZE = 900
 CHUNK_OVERLAP = 120
