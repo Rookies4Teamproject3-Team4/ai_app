@@ -33,6 +33,7 @@ poetry.lock
 .idea/
 *.swp
 *.swo
+.env
 
 # OS
 .DS_Store
