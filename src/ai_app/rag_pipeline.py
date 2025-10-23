@@ -16,11 +16,11 @@ load_dotenv(dotenv_path=dotenv_path)
 class QAItem(BaseModel):
     question: str = Field(description="문항 본문")
     answer: str = Field(description="문항 정답(서술/객관식/OX 등 텍스트)")
-    qtype: Literal["MCQ", "OX", "ESSAY"] = Field(
-        description="문제 유형: MCQ(객관식), OX, ESSAY(서술/단답)"
+    qtype: Literal["MULTIPLE", "TRUEFALSE", "ESSAY"] = Field(
+        description="문제 유형: MULTIPLE(객관식), OX, ESSAY(서술/단답)"
     )
     choices: Optional[List[str]] = Field(
-        default=None, description="객관식 보기 리스트(1번부터 순서대로; MCQ일 때만 존재)"
+        default=None, description="객관식 보기 리스트(1번부터 순서대로; MULTIPLE일 때만 존재)"
     )
 
 class GenerateQAResponse(BaseModel):
@@ -43,15 +43,15 @@ TEMPLATE = r"""
 
 규칙:
 1) items 배열 길이는 정확히 {num_questions}개.
-2) isOx=false면 OX 유형 문항 금지.
+2) isOx=false면 TRUEFALSE 유형 문항 금지.
 3) isDesc=false면 ESSAY(서술/단답) 문항 금지.
-4) MCQ(객관식) 문항을 만들 때는:
+4) MULTIPLE(객관식) 문항을 만들 때는:
    - choices 배열을 반드시 포함하고 길이는 choice_count와 같아야 한다.
    - answer는 choices 중 하나여야 한다(텍스트 일치).
 5) 모든 문항/정답은 컨텍스트에 근거해야 하며 환각 금지.
 6) 출력 문자열에서 역슬래시(\\)는 JSON 규격에 맞게 반드시 두 번(\\\\)으로 이스케이프하라.
    - 수식 표기가 필요하면 LaTeX 대신 평문을 사용하라. 예) '\\\\vec(a)' 대신 'vec(a)'.
-7) 모든 출력은 한국어로 하되, qtype 값은 'MCQ' | 'OX' | 'ESSAY' 중 하나로 고정한다.
+7) 모든 출력은 한국어로 하되, qtype 값은 'MULTIPLE' | 'TRUEFALSE' | 'ESSAY' 중 하나로 고정한다.
 
 컨텍스트(중요도 순):
 {context}
@@ -59,8 +59,8 @@ TEMPLATE = r"""
 {format_instructions}
 - items[*].question: 문자열
 - items[*].answer: 문자열
-- items[*].qtype: 'MCQ' | 'OX' | 'ESSAY'
-- items[*].choices: MCQ일 때만 존재하며 문자열 리스트(길이=choice_count)
+- items[*].qtype: 'MULTIPLE' | 'TRUEFALSE' | 'ESSAY'
+- items[*].choices: MULTIPLE일 때만 존재하며 문자열 리스트(길이=choice_count)
 """
 
 prompt = ChatPromptTemplate.from_template(TEMPLATE).partial(
@@ -124,8 +124,8 @@ def _mock_items(num_questions: int, choice_count: Optional[int]) -> GenerateQARe
     cc = choice_count or 4
     items: List[QAItem] = []
     for i in range(1, num_questions + 1):
-        qtype: Literal["MCQ", "OX", "ESSAY"] = "MCQ"
-        choices = [f"보기 {j}" for j in range(1, cc + 1)] if qtype == "MCQ" else None
+        qtype: Literal["MULTIPLE", "TRUEFALSE", "ESSAY"] = "MULTIPLE"
+        choices = [f"보기 {j}" for j in range(1, cc + 1)] if qtype == "MULTIPLE" else None
         items.append(QAItem(
             question=f"더미 문항 {i}: 컨텍스트의 핵심 개념을 고르시오.",
             answer=choices[0] if choices else "정답",
@@ -163,20 +163,20 @@ def generate_qa_with_parser(
 def to_numbered_key_list(resp: GenerateQAResponse) -> list[dict]:
     """
     백엔드 저장형식으로 변환:
-    - questionN: MCQ면 "문제문  1번 a  2번 b ..." 형태로 보기 포함
-    - 문제유형: 'MCQ' | 'OX' | 'ESSAY'
-    - 답N: 정답 텍스트
+    - question: MULTIPLE이면 "문제문  1번 a  2번 b ..." 형태로 보기 포함
+    - type: 'MULTIPLE' | 'TRUEFALSE' | 'ESSAY'
+    - answer: 정답 텍스트
     """
     out: List[dict] = []
     for idx, item in enumerate(resp.items, start=1):
         display_q = item.question.strip()
-        if item.qtype == "MCQ" and item.choices:
+        if item.qtype == "MULTIPLE" and item.choices:
             joined = "  ".join(f"{i}번 {ch}" for i, ch in enumerate(item.choices, start=1))
             display_q = f"{display_q}  {joined}"
         out.append({
-            f"question{idx}": display_q,
-            "문제유형": item.qtype,
-            f"답{idx}": item.answer,  
+            f"question": display_q,
+            "type": item.qtype,
+            f"answer": item.answer,  
         })
     return out
 
