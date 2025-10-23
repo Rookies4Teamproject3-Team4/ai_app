@@ -165,7 +165,7 @@ def to_numbered_key_list(resp: GenerateQAResponse) -> list[dict]:
     백엔드 저장형식으로 변환:
     - question: MULTIPLE이면 "문제문  1번 a  2번 b ..." 형태로 보기 포함
     - type: 'MULTIPLE' | 'TRUEFALSE' | 'ESSAY'
-    - answer: 정답 텍스트
+    - answer: 정답 텍스트, 문제 유형이 TRUEFALSE일 경우 답은 true 또는 false로 대답
     """
     out: List[dict] = []
     for idx, item in enumerate(resp.items, start=1):
