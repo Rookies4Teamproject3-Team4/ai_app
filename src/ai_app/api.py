@@ -1,10 +1,11 @@
-# src/ai_app/api.py
+
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 import os
-from ai_app.rag_pipeline import generate_qa_with_parser, to_numbered_key_list
-from ai_app.build_index import context_from_pdf_bytes
+from .rag_pipeline import generate_qa_with_parser, to_numbered_key_list # 상대 경로 임포트
+from .build_index import context_from_pdf_bytes
+from . import marking 
 
 # ===== .env 경로 로드 =====
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,7 +15,13 @@ load_dotenv(dotenv_path=dotenv_path)
 # ===== FastAPI 앱 생성 =====
 app = FastAPI(title="Study Helper AI", version="1.0.0")
 
-@app.post("/ai/generate-qa")
+# <--- 새로 추가: marking_api 라우터 등록 --->
+# marking_api.py에서 prefix="/ai"로 설정했으므로, 경로는 그대로 /ai/marking이 됩니다.
+app.include_router(marking.router)
+# <--------------------------------------->
+
+
+@app.post("/ai/generate-qa") # 기존 RAG 엔드포인트는 그대로 유지
 async def generate_qa(
     pdf: UploadFile = File(..., description="학습 PDF"),
     subject: str = Form(..., description="과목명 (예: 확통1)"),
@@ -29,13 +36,11 @@ async def generate_qa(
 
     pdf_bytes = await pdf.read()
 
-    )
     try:
         context = context_from_pdf_bytes(pdf_bytes, subject=subject, title=title)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"인덱싱 실패: {e}")
 
-    )
     try:
         resp = generate_qa_with_parser(
             subject=subject,
