@@ -43,15 +43,20 @@ TEMPLATE = r"""
 
 규칙:
 1) items 배열 길이는 정확히 {num_questions}개.
-2) isOx=false면 TRUEFALSE 유형 문항 금지.
-3) isDesc=false면 ESSAY(서술/단답) 문항 금지.
-4) MULTIPLE(객관식) 문항을 만들 때는:
+2) isOx=false면 TRUEFALSE 유형 문항 생성 금지.
+3) isDesc=false면 ESSAY(서술/단답) 문항 생성 금지.
+4) isDesc=true면 ESSAY(서술/단답)유형 문항을 최소 1문제 이상 생성.
+5) isOx=true면 TRUEFALSE 유형 문항을 최소 1문제 이상 생성.
+
+6) MULTIPLE(객관식) 문항을 만들 때는:
    - choices 배열을 반드시 포함하고 길이는 choice_count와 같아야 한다.
-   - answer는 choices 중 하나여야 하며 선지 번호로 답하지 말고 선지의 내용으로 답한다. 또한 문제의 유형이 TRUEFALSE이면 true또는 false로 답한다.(텍스트 일치).
-5) 모든 문항/정답은 컨텍스트에 근거해야 하며 환각 금지.
-6) 출력 문자열에서 역슬래시(\\)는 JSON 규격에 맞게 반드시 두 번(\\\\)으로 이스케이프하라.
+   - answer는 choices 중 하나여야 하며 선지 번호로 답하지 말고 선지의 내용으로 답한다. 
+7) TRUEFALSE(OX퀴즈) 문항을 만들 때는:
+   - answer는 true 또는 false로 답한다.
+8) 모든 문항/정답은 컨텍스트에 근거해야 하며 환각 금지.
+9) 출력 문자열에서 역슬래시(\\)는 JSON 규격에 맞게 반드시 두 번(\\\\)으로 이스케이프하라.
    - 수식 표기가 필요하면 LaTeX 대신 평문을 사용하라. 예) '\\\\vec(a)' 대신 'vec(a)'.
-7) 모든 출력은 한국어로 하되, qtype 값은 'MULTIPLE' | 'TRUEFALSE' | 'ESSAY' 중 하나로 고정한다.
+10) 모든 출력은 한국어로 하되, qtype 값은 'MULTIPLE' | 'TRUEFALSE' | 'ESSAY' 중 하나로 고정한다.
 
 컨텍스트(중요도 순):
 {context}
@@ -69,12 +74,12 @@ prompt = ChatPromptTemplate.from_template(TEMPLATE).partial(
 
 # -------------------- LLM/체인 --------------------
 def _get_model() -> ChatOpenAI:
-    base_url = os.getenv("GROQ_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "https://api.groq.com/openai/v1"
-    api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
-    model_id = os.getenv("GROQ_MODEL") or os.getenv("OPENAI_MODEL") or "meta-llama/llama-4-scout-17b-16e-instruct"
+    
+    api_key =os.getenv("OPENAI_API_KEY")
+    model_id ="gpt-3.5-turbo-0125"
     if not api_key:
-        raise RuntimeError("GROQ_API_KEY 또는 OPENAI_API_KEY가 필요합니다 (.env 설정).")
-    return ChatOpenAI(base_url=base_url, api_key=api_key, model=model_id, temperature=0.2)
+        raise RuntimeError("OPENAI_API_KEY가 필요합니다 (.env 설정).")
+    return ChatOpenAI(api_key=api_key, model=model_id, temperature=0.2)
 
 _model = None
 _chain_raw = None 
