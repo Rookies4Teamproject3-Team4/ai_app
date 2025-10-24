@@ -3,11 +3,15 @@ import hashlib, io, re, os
 from typing import List, Optional
 from pypdf import PdfReader
 import unicodedata
+from dotenv import load_dotenv
 
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_community.vectorstores import FAISS
+
+# Load environment variables
+load_dotenv()
 
 # ===== 설정 =====
 EMBED_MODEL = "text-embedding-3-small"
@@ -20,7 +24,10 @@ _embeddings = None
 def get_embeddings():
     global _embeddings
     if _embeddings is None:
-        _embeddings = OpenAIEmbeddings(model=EMBED_MODEL)
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise RuntimeError("OPENAI_API_KEY가 필요합니다 (.env 설정).")
+        _embeddings = OpenAIEmbeddings(model=EMBED_MODEL, api_key=api_key)
     return _embeddings
 
 def clean_text(text: str) -> str:

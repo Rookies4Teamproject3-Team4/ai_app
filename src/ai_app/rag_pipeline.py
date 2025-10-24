@@ -69,12 +69,10 @@ prompt = ChatPromptTemplate.from_template(TEMPLATE).partial(
 
 # -------------------- LLM/체인 --------------------
 def _get_model() -> ChatOpenAI:
-    base_url = os.getenv("GROQ_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "https://api.groq.com/openai/v1"
-    api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
-    model_id = os.getenv("GROQ_MODEL") or os.getenv("OPENAI_MODEL") or "meta-llama/llama-4-scout-17b-16e-instruct"
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise RuntimeError("GROQ_API_KEY 또는 OPENAI_API_KEY가 필요합니다 (.env 설정).")
-    return ChatOpenAI(base_url=base_url, api_key=api_key, model=model_id, temperature=0.2)
+        raise RuntimeError("OPENAI_API_KEY가 필요합니다 (.env 설정).")
+    return ChatOpenAI(model="gpt-3.5-turbo-0125", api_key=api_key, temperature=0.2)
 
 _model = None
 _chain_raw = None 
