@@ -12,6 +12,8 @@ from . import marking
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path=dotenv_path)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+print(OPENAI_API_KEY[:5])
 
 # ===== FastAPI 앱 생성 =====
 app = FastAPI(title="Study Helper AI", version="1.0.0")

@@ -2,6 +2,7 @@
 import hashlib, io, re, os
 from typing import List, Optional
 from pypdf import PdfReader
+import unicodedata
 
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
@@ -21,6 +22,14 @@ def get_embeddings():
     if _embeddings is None:
         _embeddings = OpenAIEmbeddings(model=EMBED_MODEL)
     return _embeddings
+
+def clean_text(text: str) -> str:
+    if not isinstance(text, str):
+        return ""
+    text = unicodedata.normalize("NFKC", text)
+    text = text.encode("utf-8", errors="ignore").decode("utf-8", errors="ignore")
+    return text.strip()
+
 
 # ===== PDF → 텍스트 → 청크 =====
 def extract_pdf_text(pdf_bytes: bytes) -> List[str]:
@@ -44,7 +53,7 @@ def chunk_text(pages: List[str], chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP) -
         start = 0
         while start < len(page):
             end = min(len(page), start + chunk_size)
-            chunk = page[start:end].strip()
+            chunk = clean_text(page[start:end])
             if chunk:
                 chunks.append(chunk)
             if end == len(page):
@@ -84,12 +93,13 @@ def save_faiss(subject: str, vectordb: FAISS):
     vectordb.save_local(path)         
 
 
-def upsert_to_faiss(subject: str, title: str, chunks: List[str]) -> FAISS:
-    """
-    문서 청크를 해당 subject 인덱스에 업서트하고 디스크에 저장.
-    subject별로 별도 인덱스를 유지합니다.
-    """
+def upsert_to_faiss(subject: str, title: str, chunks: List[str]) -> FAISS: 
     embeddings = get_embeddings()
+
+    valid_chunks = [ch for ch in chunks if isinstance(ch, str) and ch.strip()]
+    if not valid_chunks:
+        raise ValueError("유효한 텍스트 청크가 없습니다. PDF에서 텍스트를 추출하지 못했을 가능성이 있습니다.")
+
     docs = [
         Document(
             page_content=ch,
@@ -119,4 +129,3 @@ def context_from_pdf_bytes(pdf_bytes: bytes, subject: str, title: str) -> str:
         raise ValueError("텍스트 청크가 비었습니다.")
     vectordb = upsert_to_faiss(subject=subject, title=title, chunks=chunks)
     return build_context(vectordb, query=title or subject, k=RETRIEVE_K)
-

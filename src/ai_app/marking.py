@@ -10,6 +10,7 @@ from langchain_core.runnables import RunnablePassthrough
 
 load_dotenv() 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+print(OPENAI_API_KEY[:5])
 
 # APIRouter 인스턴스 생성
 # prefix를 "/ai"로 지정하여 /ai/marking 경로가 되도록 합니다.
@@ -44,12 +45,7 @@ class MarkingResponse(BaseModel):
 
 
 # --- LLM 및 LCEL 체인 설정 ---
-llm = ChatOpenAI(
-    api_key=OPENAI_API_KEY,
-    base_url="https://api.groq.com/openai/v1", 
-    model="moonshotai/kimi-k2-instruct-0905",
-    temperature=0.0
-)
+llm = ChatOpenAI(model="gpt-3.5-turbo-0125")
 
 SYSTEM_PROMPT = """
 당신은 전문 채점관입니다. 주어진 문제를 풀고, 사용자의 '답' 필드와 비교하여 정답 여부를 판단해야 합니다. 
