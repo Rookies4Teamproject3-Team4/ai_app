@@ -2,7 +2,7 @@ venv/
 __pycache__/
 .ipynb_checkpoints/
 .env
-.faiss/venv/
+.faiss
 __pycache__/
 .ipynb_checkpoints/
 .env
