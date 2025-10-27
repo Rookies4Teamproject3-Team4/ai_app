@@ -43,8 +43,8 @@ TEMPLATE = r"""
 
 규칙:
 1) items 배열 길이는 정확히 {num_questions}개.
-2) isOx=false면 TRUEFALSE 유형 문항 생성 금지.
-3) isDesc=false면 ESSAY(서술/단답) 문항 생성 금지.
+2) isOx=false면 TRUEFALSE 유형 문항 생성 절대 금지.
+3) isDesc=false면 ESSAY(서술/단답) 문항 생성 절대 금지.
 4) isDesc=true면 ESSAY(서술/단답)유형 문항을 최소 1문제 이상 생성.
 5) isOx=true면 TRUEFALSE 유형 문항을 최소 1문제 이상 생성.
 
@@ -76,7 +76,7 @@ prompt = ChatPromptTemplate.from_template(TEMPLATE).partial(
 def _get_model() -> ChatOpenAI:
     
     api_key =os.getenv("OPENAI_API_KEY")
-    model_id ="gpt-3.5-turbo-0125"
+    model_id ="gpt-4o"
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY가 필요합니다 (.env 설정).")
     return ChatOpenAI(api_key=api_key, model=model_id, temperature=0.2)
@@ -161,7 +161,7 @@ def generate_qa_with_parser(
         "choice_count": choice_count if choice_count is not None else "N/A",
         "isDesc": isDesc,
         "isOx": isOx,
-        "context": context[:12000],
+        "context": context,
     })
     return _safe_parse_to_model(text)
 

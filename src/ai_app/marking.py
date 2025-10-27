@@ -72,15 +72,17 @@ class MarkingResponse(BaseModel):
    ai_comment: str = Field(..., description="AI 학습 평가 코멘트 (예: 추가 학습 필요, 학습 완료 등)")
 
 
+
 # --- LLM 및 LCEL 체인 설정 ---
-llm = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0.1)
+llm = ChatOpenAI(model="gpt-4o", temperature=0.1)
 
 SYSTEM_PROMPT = """
 당신은 전문 채점관입니다. 아래 [문제 데이터]와 [참조 컨텍스트]를 보고, 각 문제의 정답을 추론하여 사용자의 '답' 필드와 엄격하게 비교하세요.
 참조 컨텍스트가 주어지면, 그 컨텍스트를 기반으로 문제를 해결하고 정답을 판단하세요. 컨텍스트가 없다면 일반 지식으로 채점하세요.
 
 규칙:
-1. 문제의 정답을 추론하여 사용자의 답변과 비교 후 반드시'정답여부' 필드를 'true' 또는 'false'로 채우세요.
+1. 문제의 정답을 추론하여 사용자의 답변과 비교 후 반드시 '정답여부' 필드를 'true' 또는 'false'로 채우세요.
+
 2. '답' 필드는 AI가 추론한 '정답'을 텍스트로 채우세요.
 3. 객관식, 주관식, OX 문제 채점 기준은 아래를 따르세요.
   - 객관식: 
@@ -88,6 +90,7 @@ SYSTEM_PROMPT = """
     2) **사용자 답변이 '1', '2', '3', '4' 등의 선지 번호일 경우,** 해당 번호가 **정답 선지의 번호와 일치하면** 정답으로 처리합니다.
   - 단답형/주관식: 의미가 동일하거나 오타가 경미하면 정답.
   - OX 퀴즈: 'true'/'false'를 O/X로 간주합니다.
+
 4. 전체 정답률을 바탕으로 학습 상태를 평가하여 ai_comment를 생성하세요.
 5. ai_comment는 아래 예시 중 하나로 구성합니다:
    - 정답률 90% 이상 → "학습 완료, 매우 우수합니다!"
@@ -180,6 +183,7 @@ async def marking(
          incorrect_num=incorrect_num,
          score=total_score,
          ai_comment=ai_comment
+
       )
       
    except Exception as e:
