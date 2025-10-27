@@ -69,6 +69,7 @@ class MarkingResponse(BaseModel):
    correct_num: int = Field(..., description="총 맞은 문제의 개수")
    incorrect_num: int = Field(..., description="총 틀린 문제의 개수")
    score: int = Field(..., description="총 점수")
+   ai_comment: str = Field(...,description="AI 평가")
 
 
 # --- LLM 및 LCEL 체인 설정 ---
@@ -79,7 +80,7 @@ SYSTEM_PROMPT = """
 참조 컨텍스트가 주어지면, 그 컨텍스트를 기반으로 문제를 해결하고 정답을 판단하세요. 컨텍스트가 없다면 일반 지식으로 채점하세요.
 
 규칙:
-1. 문제의 정답을 추론하여 사용자의 답변과 비교 후 '정답여부' 필드를 'true' 또는 'false'로 채우세요.
+1. 문제의 정답을 추론하여 사용자의 답변과 비교 후 반드시 '정답여부' 필드를 'true' 또는 'false'로 채우세요.
 2. '답' 필드는 AI가 추론한 '정답'을 텍스트로 채우세요.
 3. 객관식, 주관식, OX 문제 채점 기준은 아래를 따르세요.
   - 객관식: 
@@ -87,7 +88,9 @@ SYSTEM_PROMPT = """
     2) **사용자 답변이 '1', '2', '3', '4' 등의 선지 번호일 경우,** 해당 번호가 **정답 선지의 번호와 일치하면** 정답으로 처리합니다.
   - 단답형/주관식: 의미가 동일하거나 오타가 경미하면 정답.
   - OX 퀴즈: 'true'/'false'를 O/X로 간주합니다.
-4. 결과는 반드시 요청된 JSON 스키마 형식으로만 응답해야 합니다.
+4. '정답여부' 필드가 false인 문제에 대해 사용자가 어떤 파트를 공부해하는 지 한줄의 도움말로 응답해 'ai_comment'필드에 채워주세요.
+  - 예시 : 벡터의 합에서 평행사변형 공식에 대한 공부가 더 필요합니다./백터의 성분 파트는 완벽합니다!
+5. 결과는 반드시 요청된 JSON 스키마 형식으로만 응답해야 합니다.
 
 [참조 컨텍스트]
 {context}
@@ -157,7 +160,8 @@ async def marking(
          marked_questions=result.marked_questions,
          correct_num=correct_num,
          incorrect_num=incorrect_num,
-         score=total_score
+         score=total_score,
+         ai_comment=result.ai_comment
       )
       
    except Exception as e:
