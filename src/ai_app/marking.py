@@ -69,6 +69,7 @@ class MarkingResponse(BaseModel):
    correct_num: int = Field(..., description="총 맞은 문제의 개수")
    incorrect_num: int = Field(..., description="총 틀린 문제의 개수")
    score: int = Field(..., description="총 점수")
+   ai_comment: str = Field(..., description="AI 학습 평가 코멘트 (예: 추가 학습 필요, 학습 완료 등)")
 
 
 # --- LLM 및 LCEL 체인 설정 ---
@@ -87,7 +88,13 @@ SYSTEM_PROMPT = """
     2) **사용자 답변이 '1', '2', '3', '4' 등의 선지 번호일 경우,** 해당 번호가 **정답 선지의 번호와 일치하면** 정답으로 처리합니다.
   - 단답형/주관식: 의미가 동일하거나 오타가 경미하면 정답.
   - OX 퀴즈: 'true'/'false'를 O/X로 간주합니다.
-4. 결과는 반드시 요청된 JSON 스키마 형식으로만 응답해야 합니다.
+4. 전체 정답률을 바탕으로 학습 상태를 평가하여 ai_comment를 생성하세요.
+5. ai_comment는 아래 예시 중 하나로 구성합니다:
+   - 정답률 90% 이상 → "학습 완료, 매우 우수합니다!"
+   - 정답률 70~89% → "학습이 잘 진행되고 있습니다. 복습을 권장합니다."
+   - 정답률 50~69% → "핵심 개념에 대한 추가 학습이 필요합니다."
+   - 정답률 50% 미만 → "기초 개념부터 다시 복습해보세요."
+6. 결과는 반드시 요청된 JSON 스키마 형식으로만 응답해야 하고, 'ai_comment' 필드를 포함해야 합니다.
 
 [참조 컨텍스트]
 {context}
@@ -152,12 +159,27 @@ async def marking(
       if total_problems > 0:
          total_score = int(((correct_num / total_problems) * 100.0) + 0.5)
 
+
+      if total_problems > 0:
+         total_score = int(((correct_num / total_problems) * 100.0) + 0.5)
+
+      if total_score >= 90:
+         ai_comment = "학습 완료, 매우 우수합니다!"
+      elif total_score >= 70:
+         ai_comment = "학습이 잘 진행되고 있습니다. 복습을 권장합니다."
+      elif total_score >= 50:
+         ai_comment = "핵심 개념에 대한 추가 학습이 필요합니다."
+      else:
+         ai_comment = "기초 개념부터 다시 복습해보세요."
+
+
       # 4. 결과 객체에 계산된 값 대입 후 반환
       return MarkingResponse(
          marked_questions=result.marked_questions,
          correct_num=correct_num,
          incorrect_num=incorrect_num,
-         score=total_score
+         score=total_score,
+         ai_comment=ai_comment
       )
       
    except Exception as e:
