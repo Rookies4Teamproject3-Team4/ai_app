@@ -30,8 +30,8 @@ async def generate_qa(
     subject: str = Form(..., description="과목명 (예: 확통1)"),
     title: str = Form(..., description="세트 제목 (예: 확률의기초_1회)"),
     num_questions: int = Form(10, description="문항 수"),
-    choice_count: int | None = Form(None, description="객관식 보기 수 (4/5 등)"),
-    isDesc: bool = Form(True, description="서술형 포함 여부"),
+    choice_count: int | None = Form(None, description="객관식 보기 수 (4/5)"),
+    isDesc: bool = Form(False, description="서술형 포함 여부"),
     isOx: bool = Form(False, description="OX 포함 여부")
 ):
     if pdf.content_type not in ["application/pdf", "application/octet-stream"]:
@@ -45,6 +45,7 @@ async def generate_qa(
         raise HTTPException(status_code=400, detail=f"인덱싱 실패: {e}")
 
     try:
+        print("isDesc, isOx: ", isDesc, isOx)
         resp = generate_qa_with_parser(
             subject=subject,
             title=title,
@@ -54,6 +55,7 @@ async def generate_qa(
             isOx=isOx,
             context=context
         )
+        print(resp)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"문제 생성 실패: {e}")
 
