@@ -45,7 +45,6 @@ async def generate_qa(
         raise HTTPException(status_code=400, detail=f"인덱싱 실패: {e}")
 
     try:
-        print("isDesc, isOx: ", isDesc, isOx)
         resp = generate_qa_with_parser(
             subject=subject,
             title=title,
@@ -55,7 +54,6 @@ async def generate_qa(
             isOx=isOx,
             context=context
         )
-        print(resp)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"문제 생성 실패: {e}")
 

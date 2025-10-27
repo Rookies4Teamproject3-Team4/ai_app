@@ -73,7 +73,7 @@ class MarkingResponse(BaseModel):
 
 
 # --- LLM 및 LCEL 체인 설정 ---
-llm = ChatOpenAI(model="gpt-3.5-turbo-0125", temperature=0.1)
+llm = ChatOpenAI(model="gpt-4o", temperature=0.1)
 
 SYSTEM_PROMPT = """
 당신은 전문 채점관입니다. 아래 [문제 데이터]와 [참조 컨텍스트]를 보고, 각 문제의 정답을 추론하여 사용자의 '답' 필드와 엄격하게 비교하세요.
